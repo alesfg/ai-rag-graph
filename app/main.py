@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from app.llm import ask_llm
 
 app = FastAPI()
 
@@ -15,6 +16,10 @@ class TextInput(BaseModel):
 def root():
     return {"message": "API running"}
 
+@app.get("/test-llm")
+def test_llm():
+    response = ask_llm("Explain what RAG is in one sentence")
+    return {"response": response}
 
 @app.post("/upload")
 def upload_text(input: TextInput):
