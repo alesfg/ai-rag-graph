@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from app.llm import ask_llm
 from app.embeddings import get_embeddings
+from app.vector_store import create_vector_store, search
 
 app = FastAPI()
 
@@ -32,11 +33,21 @@ def test_embeddings():
         "sample": vector[:5]  # primeros valores
     }
 
+@app.get("/search")
+def search_text(query: str):
+    if db is None:
+        return {"error": "No data uploaded yet"}
+
+    results = search(db, query)
+
+    return {"results": results}
+
 @app.post("/upload")
 def upload_text(input: TextInput):
     global db
-    db = input.text  # de momento solo guardamos el texto
+    db = create_vector_store(input.text)
+
     return {
-        "status": "stored",
-        "length": len(input.text)
+        "status": "indexed"
     }
+
