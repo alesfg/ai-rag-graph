@@ -7,3 +7,4 @@ langchain-openai
 faiss-cpu
 langchain-community
 langchain-text-splitters
+neo4j

@@ -6,12 +6,14 @@ from app.vector_store import create_vector_store, search
 from app.rag import rag_query
 from app.graph import extract_relations, add_relation
 from app.graph import get_graph
+from app.neo4j_graph import Neo4jGraph
 
 app = FastAPI()
 
 # Simulación de "base de datos"
 db = None
 
+graph_db = Neo4jGraph()
 
 class TextInput(BaseModel):
     text: str
@@ -59,11 +61,13 @@ def upload_text(input: TextInput):
     global db
     db = create_vector_store(input.text)
 
-    # extraer relaciones
     relations = extract_relations(input.text)
 
-    for e1, e2 in relations:
-        add_relation(e1, e2)
+    try:
+        for e1, e2 in relations:
+            graph_db.add_relation(e1, e2)
+    except Exception as e:
+        print("Neo4j error:", e)
 
     return {
         "status": "indexed",
@@ -74,4 +78,9 @@ def upload_text(input: TextInput):
 @app.get("/graph")
 def view_graph():
     return get_graph()
+
+@app.get("/graph/{entity}")
+def get_graph_relations(entity: str):
+    relations = graph_db.get_relations(entity)
+    return {"entity": entity, "relations": relations}
 
