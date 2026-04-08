@@ -4,6 +4,8 @@ from app.llm import ask_llm
 from app.embeddings import get_embeddings
 from app.vector_store import create_vector_store, search
 from app.rag import rag_query
+from app.graph import extract_relations, add_relation
+from app.graph import get_graph
 
 app = FastAPI()
 
@@ -57,7 +59,19 @@ def upload_text(input: TextInput):
     global db
     db = create_vector_store(input.text)
 
+    # extraer relaciones
+    relations = extract_relations(input.text)
+
+    for e1, e2 in relations:
+        add_relation(e1, e2)
+
     return {
-        "status": "indexed"
+        "status": "indexed",
+        "relations": relations
     }
+
+
+@app.get("/graph")
+def view_graph():
+    return get_graph()
 
