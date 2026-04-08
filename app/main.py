@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from app.llm import ask_llm
 from app.embeddings import get_embeddings
 from app.vector_store import create_vector_store, search
+from app.rag import rag_query
 
 app = FastAPI()
 
@@ -41,6 +42,15 @@ def search_text(query: str):
     results = search(db, query)
 
     return {"results": results}
+
+@app.get("/ask")
+def ask(query: str):
+    if db is None:
+        return {"error": "No data uploaded yet"}
+
+    answer = rag_query(db, query)
+
+    return {"answer": answer}
 
 @app.post("/upload")
 def upload_text(input: TextInput):
